@@ -145,9 +145,16 @@ include_directories(
 
 SET(CMAKE_CXX_FLAGS "-std=c++11 -O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 ## Declare a C++ library
-# add_library(perfect_velodyne
-#   src/${PROJECT_NAME}/perfect_velodyne.cpp
-# )
+
+
+add_library(${PROJECT_NAME} SHARED
+   src/perfect_velodyne.cpp
+)
+target_link_libraries(${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+    ${Eigen_LIBRARIES}
+    ${PCL_LIBRARIES}
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
