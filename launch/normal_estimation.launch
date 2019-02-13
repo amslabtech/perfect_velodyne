@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="perfect_velodyne" type="normal_estimation_refine_smoothing" name="NormalEstimationForVelodyne" output="screen" />
+		<param name="HNN" value="3l" />
+		<param name="MAX_RANGE" value="120.0f" />
+		<param name="MIN_RANGE" value="2.2f" />
+		<!--param name="MIN_RANGE" value="0.5f" /-->
+		<param name="VR" value="1.0068f" />
+		<!-- <param name="VR" value="0.839f" /> -->
+		<!-- <param name="VR" value="0.5034f" /> -->
+		<param name="skip" value="2.0f" />
+		<param name="vector_horizon" value="0.1f" />
+		<param name="vector_vertical" value="1.5f" />
+		<param name="DENS" value="0.5f" />
+		<param name="CURV" value="0.1f" />
+		<param name="DISP" value="0l" />
+</launch>
