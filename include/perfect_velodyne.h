@@ -11,6 +11,13 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
+#include <Eigen/Core>
+#include <Eigen/SVD>
+
+#include <visualization_msgs/Marker.h>
+#include <velodyne_msgs/VelodyneScan.h>
+#include <omp.h>
+
 namespace PERFECT_VELODYNE{
 
 class NormalEstimation{
@@ -21,6 +28,7 @@ class NormalEstimation{
 
         ros::Publisher pub_cloud;
         ros::Publisher pub_sphere;
+        ros::Publisher pub_marker;
 
         int VNN;
         int VN;
@@ -50,6 +58,12 @@ class NormalEstimation{
         void callback(const sensor_msgs::PointCloud2::ConstPtr&);
 
         size_t itr(const size_t&);
+        inline bool is_valid(float);
+        inline bool jud(const int&, size_t size);
+        bool alignment(const Eigen::Vector3f&, const Eigen::Vector3f&);
+        void rm_zero(pcl::PointCloud<pcl::PointXYZINormal>&);
+        void rm_zero_nd(pcl::PointCloud<pcl::PointXYZINormal>&);
+        void disp(const pcl::PointCloud<pcl::PointXYZINormal>&);
 };
 
 

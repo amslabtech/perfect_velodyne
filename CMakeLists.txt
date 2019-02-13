@@ -178,6 +178,7 @@ add_executable(dummy_principal_components_publisher src/dummy_principal_componen
 add_executable(ensparse src/ensparse.cpp)
 add_executable(normal_estimation_vlp16 src/normal_estimation_vlp16.cpp)
 add_executable(normal_estimation_hdl32 src/normal_estimation_hdl32.cpp)
+add_executable(perfect_velodyne_node src/perfect_velodyne_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -201,6 +202,7 @@ target_link_libraries(dummy_principal_components_publisher  ${catkin_LIBRARIES} 
 target_link_libraries(ensparse  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(normal_estimation_vlp16  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(normal_estimation_hdl32  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(perfect_velodyne_node ${PROJECT_NAME})
 
 #############
 ## Install ##
