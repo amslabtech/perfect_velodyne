@@ -15,7 +15,6 @@
 #include <Eigen/SVD>
 
 #include <visualization_msgs/Marker.h>
-#include <velodyne_msgs/VelodyneScan.h>
 #include <omp.h>
 
 namespace PERFECT_VELODYNE{
