@@ -23,7 +23,7 @@ NormalEstimation::NormalEstimation()
     nh.param<int>("HNN", HNN, 3l);
     nh.param<double>("MIN_RANGE", MIN_RANGE, 0.2);
     nh.param<double>("MAX_RANGE", MAX_RANGE, 120);
-    nh.param<int>("skip", skip, 5);
+    nh.param<int>("skip", skip, 1);
     nh.param<double>("VR", VR, 1.0068);
     nh.param<double>("vector_horizon", vector_horizon, 0.1);
     nh.param<double>("vector_vertical", vector_vertical, 1.5);
