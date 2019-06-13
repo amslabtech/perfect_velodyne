@@ -1,3 +1,9 @@
+//file: normal_estimation.cpp
+//package: perfect_velodyne
+//author: shogo shimizu
+//last update: 2013.08.03
+//2013.11.11	推定された法線を正規化した。
+
 #include <iostream>
 
 #include <pcl/io/pcd_io.h>
@@ -19,8 +25,11 @@
 #include <velodyne_msgs/VelodyneScan.h>
 #include <omp.h>
 
+//#define HNN 5
+//#define HNN 7
 #define VNN 1
-#define VN 16
+#define VN 32
+//#define THRESH_D 0.05 // not bekizyou
 #define THRESH_D 0.2
 
 using namespace std;
@@ -46,16 +55,10 @@ ros::Publisher pub_4;
 ros::Publisher pub_mk;
 
 size_t skip = 5;
-float skip_ = 1.0/skip;	// 20151104
 int HNN = 7;
-int HNN_VNN = (2*HNN+1)*(2*VNN+1);	// 20151104
-float HNN_VNN_ = 1.0/HNN_VNN;	// 20151104
-float HNN2VNN2_ = 1.0/((2*(float)HNN)*(2*(float)VNN));	// 20151104
 float VR = 0.839 * 0.60;
 float MIN_RANGE = 0.2f;
-float MIN_RANGE2 = (MIN_RANGE*MIN_RANGE);	// 20151104
 float MAX_RANGE = 120.0f;
-float MAX_RANGE2 = (MAX_RANGE*MAX_RANGE);	// 20151104
 
 float DENS;
 float CURV;
@@ -92,32 +95,20 @@ bool getParams(ros::NodeHandle &n){
 	getParam(n, "DENS", DENS);
 	getParam(n, "CURV", CURV);
 	getParam(n, "DISP", DISP);
-
-	HNN_VNN = (2*HNN+1)*(2*VNN+1);	// 20151104
-	HNN_VNN_ = 1.0/HNN_VNN;	// 20151104
-	HNN2VNN2_ = 1.0/((2*(float)HNN)*(2*(float)VNN));	// 20151104
-	MIN_RANGE2 = (MIN_RANGE*MIN_RANGE);	// 20151104
-	MAX_RANGE2 = (MAX_RANGE*MAX_RANGE);	// 20151104
-	skip_ = 1.0/skip;	// 20151104
-
 	return true;
 }
 
 void rm_zero(CloudN &pc){
 	CloudN tmp;
 	tmp.points.clear();
-	size_t i, pc_size = pc.points.size();
-	float x;
-	float y;
-	float z;
-	float d;
-	for(i=0; i<pc_size; ++i){
-		x = pc.points[i].x;
-		y = pc.points[i].y;
-		z = pc.points[i].z;
-		d = x*x + y*y + z*z;
+	for(size_t i=0;i<pc.points.size();i++){
+		float x = pc.points[i].x;
+		float y = pc.points[i].y;
+		float z = pc.points[i].z;
+		float c = pc.points[i].curvature;
+		float d = sqrt(x*x + y*y + z*z);
 
-		if((d < MAX_RANGE2) && (d  > MIN_RANGE2)){
+		if((d < MAX_RANGE) && (d  > MIN_RANGE)){
 			tmp.points.push_back(pc.points[i]);
 		}
 	}
@@ -128,25 +119,23 @@ void rm_zero(CloudN &pc){
 void rm_zero_nd(CloudN &pc){
 	CloudN tmp;
 	tmp.points.clear();
-	size_t i, pc_size = pc.points.size();
-	float x;
-	float y;
-	float z;
-	float c;
-	float d;
-	for(i=0; i<pc_size; ++i){
-		x = pc.points[i].x;
-		y = pc.points[i].y;
-		z = pc.points[i].z;
-		c = pc.points[i].curvature;
-		d = x*x + y*y + z*z;
+	for(size_t i=0;i<pc.points.size();i++){
+		float x = pc.points[i].x;
+		float y = pc.points[i].y;
+		float z = pc.points[i].z;
+		float c = pc.points[i].curvature;
+		float d = sqrt(x*x + y*y + z*z);
 
-		if( (d > 0.01) && (c < 0.18) ){
+		//if((d < MAX_RANGE) && (d  > MIN_RANGE) && (c < CURV)){}
+		if( (d > 0.1) && (c < 0.18) ){
 			tmp.points.push_back(pc.points[i]);
 		}
 	}
+	//cout << pc.points.size() ;
 	pc.points.clear();
 	pc = tmp;
+
+	//cout << " -> " << pc.points.size() << endl ;
 }
 
 
@@ -200,6 +189,52 @@ size_t itr(const size_t &num)
 	return num - tmp_1 + tmp;
 }
 
+inline size_t itr_inv(const size_t &num)
+{
+	//size_t tmp = num%32;
+	//return (tmp/16)*(2*(tmp-16)+1) + (1-(tmp/16))*(2*tmp) + 32*(num/32);
+
+	size_t tmp;
+	size_t tmp_1 = num % VN;
+	switch (tmp_1){
+		case 0: tmp = 0; break;
+		case 1: tmp = 16; break;
+		case 2: tmp = 1; break;
+		case 3: tmp = 17; break;
+		case 4: tmp = 2; break;
+		case 5: tmp =  18; break;
+		case 6: tmp =  3; break;
+		case 7: tmp =  19; break;
+		case 8: tmp =  4; break;
+		case 9: tmp =  20; break;
+		case 10: tmp =  5; break;
+		case 11: tmp =  21; break;
+		case 12: tmp =  6; break;
+		case 13: tmp =  22; break;
+		case 14: tmp =  7; break;
+		case 15: tmp =  23; break;
+		case 16: tmp =  8; break;
+		case 17: tmp =  24; break;
+		case 18: tmp =  9; break;
+		case 19: tmp =  25; break;
+		case 20: tmp =  10; break;
+		case 21: tmp =  26; break;
+		case 22: tmp =  11; break;
+		case 23: tmp =  27; break;
+		case 24: tmp =  12; break;
+		case 25: tmp =  28; break;
+		case 26: tmp =  13; break;
+		case 27: tmp =  29; break;
+		case 28: tmp =  14; break;
+		case 29: tmp =  30; break;
+		case 30: tmp =  15; break;
+		case 31: tmp =  31; break;
+	}
+	return num - tmp_1 + tmp;
+	//	return VN*(num/VN) + tmp;
+}
+
+
 inline bool jud(const int &num){
 	bool b1 = (num >= 0);
 	bool b2 = (num < (int)pc->points.size());
@@ -216,7 +251,11 @@ inline bool is_valid(float n){
 	else
 		return false;
 }
-
+/*
+   inline bool is_valid(Vector3f v){
+   return is_valid(v.norm());
+   }
+   */
 Vector3f vec(geometry_msgs::Point32 p1, geometry_msgs::Point32 p2)
 {
 	Vector3f rsl=Vector3f::Zero();
@@ -294,10 +333,11 @@ void disp(const CloudN &pc)
 	pub_mk.publish( mk );
 }
 
+
 void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 {
-
 	ros::Time tm = msg->header.stamp;
+	//	pcl::PointCloud<pcl::PointXYZRGBA>::Ptr pcl_pc_c (new pcl::PointCloud<pcl::PointXYZRGBA>);
 	CloudN pcl_pc_n;
 	CloudN pcl_pc_nd;
 	CloudN pcl_pc_final;
@@ -306,8 +346,9 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 
 	size_t i_end = pc->points.size() * VR;
 
-	pcl_pc_n.points.resize(i_end * skip_ + 1);	// 20151104
-	pcl_pc_nd.points.resize(i_end * skip_ + 1);	// 20151104
+	//	pcl_pc_c->points.resize(i_end);
+	pcl_pc_n.points.resize(i_end / skip + 1);
+	pcl_pc_nd.points.resize(i_end / skip + 1);
 
 	init_zero(pcl_pc_n);
 
@@ -325,51 +366,53 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 
 		if(!is_valid(p_q.norm()))continue;
 		float tmp_d = p_q.norm();
-		float vvtd = vector_vertical*0.0216*pow(tmp_d,1.8967);	// 20151104
-		float vhpq = vector_horizon*p_q.norm();	// 20151104
-		int ivn = (int)(i%VN);	// 20151104
 
 		if(p_q.norm() < MIN_RANGE)continue;
 
-		MatrixXf A(MatrixXf::Zero(3,HNN_VNN) );	// 20151104
+		MatrixXf A(MatrixXf::Zero(3,(2*HNN+1)*(2*VNN+1)) );
 		unsigned int cnt = 0;
+		//initialize of centroid point.
 		Vector3f cent(Vector3f::Zero(3));
 
 
 		for(int j=-VNN;j<=VNN;j++){
-			int i_j = i+j;	// 20151104
+			//本点と垂点ベクトル
 			Vector3f v_v;
 			Vector3f p_v;
-			if(!jud(i_j)) continue;	// 20151104
-			size_t v_idx = itr(i_j);	// 20151104
+			if(!jud((int)i+j)) continue;
+			size_t v_idx = itr(i+j);
 			p_v <<
 				pc->points[v_idx].x,
 				pc->points[v_idx].y,
 				pc->points[v_idx].z;
+			//v_v : vector_vertical
 			v_v = p_v - p_q;
 
 			float norm_vv = v_v.norm();
-			if(! (norm_vv < vvtd) ) continue;	// 20151104
+			//if(! (norm_vv < 0.1*pow(tmp_d,1.8)) ) continue;
+			if(! (norm_vv < vector_vertical*0.0216*pow(tmp_d,1.8967)) ) continue;
+			//if(! (norm_vv < 3.0*0.0216*pow(tmp_d,1.8)) ) continue;
 
 			for(int k=-HNN;k<=HNN;k++){
 
-				int ij32k = i_j+32*k;	// 20151104
-
-				if(!jud(ij32k)) continue;	// 20151104
-				size_t num_tmp = itr(ij32k);	// 20151104
+				if(!jud((int)i+j+32*k)) continue;
+				size_t num_tmp = itr(i+j+32*k);
 				Vector3f p_h;
 				Vector3f v_h;
 
+				//p_h : horizontal point
 				p_h <<
 					pc->points[num_tmp].x,
 					pc->points[num_tmp].y,
 					pc->points[num_tmp].z;
 
 				if(!is_valid(p_h.norm()))continue;
+				//v_h : horizontal vector
 				v_h << p_h - p_v;
 
 				float norm_vh = v_h.norm();
-				if(( norm_vh < vhpq ) && ( abs(ivn-(int)((ij32k)%VN)) ) <= VNN ){	// 20151104
+				//if(( norm_vh < 0.5 ) && ( fabs((int)(i%VN)-(int)((i+j+32*k)%VN)) ) <= VNN ){}		//2013.11.10変更後
+				if(( norm_vh < vector_horizon*p_q.norm() ) && ( fabs((int)(i%VN)-(int)((i+j+32*k)%VN)) ) <= VNN ){		//2013.11.10変更後
 					A.col(cnt) = p_h;
 					cent += p_h;
 					cnt ++;
@@ -378,7 +421,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 		}
 
 
-		float density = (float)cnt*HNN_VNN_;	// 20151104
+		float density = (float)cnt/((2*VNN+1)*(2*HNN+1));
 		if(density < DENS)continue;
 
 		cent /= (float)cnt;
@@ -399,14 +442,21 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 
 		float value=1.0;
 		value *= S(2)/S(1);
-		//value /= (float)cnt/((2*(float)HNN)*(2*(float)VNN));
-		value /= (float)cnt*HNN2VNN2_;	// 20151104
+		value /= (float)cnt/((2*(float)HNN)*(2*(float)VNN));
 		if(value > 1.0) value = 1.0;
 
 		PointN p1;
 
 		//曲率を与える
 		p1.curvature = 3.0*S(2)/(S(0) + S(1) + S(2));
+		//p1.curvature = value;
+		//p1.curvature = density;
+
+
+
+		//				float dd = (p_q - cent).norm();
+		//				if(dd>1.50)continue;
+
 
 		float w = 1.0 - pow(p1.curvature, 0.3);
 		w *= w;
@@ -430,43 +480,80 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 		p2.normal_z = 1.0;
 		p2.curvature = 3.0*S(2)/(S(0) + S(1) + S(2));
 
-		size_t index = i * skip_;	// 20151104
+
+		/*
+		   pcl::PointXYZRGBA p3;
+		   p3.r = 255*fabs(vec_n(0));
+		   p3.g = 255*fabs(vec_n(1));
+		   p3.b = 255*fabs(vec_n(2));
+		   p3.rgba = value;
+		   */
+
+		size_t index = i / skip;
+		//		pcl_pc_c->points[index] = p3;
 		pcl_pc_n.points[index] = p1;
 		pcl_pc_nd.points[index] = p2;
+		//if( (abs(vec_n(2))<0.99999) && (p1.x != 0.0) && (p1.y != 0.0) && (p1.z != 0.0) )
+
+		//		pcl_pc_n.points.push_back(p1);
+
+		//		pcl_pc_c->points.push_back(p3);
+		//		pcl_pc_n.points.push_back(p1);
+		//		pcl_pc_nd.points.push_back(p2);
+
+
 	}
 
 
 	rm_zero(pcl_pc_n);
 	rm_zero_nd(pcl_pc_nd);
 
+	//	pcl::toROSMsg(*pcl_pc_c, ros_pc_c);
+	//	ros_pc_c.header.frame_id = "/velodyne";
+	//	ros_pc_c.header.stamp = ros::Time::now();
+
 	if(DISP) disp(pcl_pc_n);
 
 	pcl::toROSMsg(pcl_pc_n, ros_pc_n);
 	pcl_pc_n.points.clear();
 	ros_pc_n.header.frame_id = "/velodyne";
+	//ros_pc_n.header.stamp = ros::Time::now();
 	ros_pc_n.header.stamp = tm;
 
+	//cout << index << " / " << i_end / skip << endl;
 	pcl::toROSMsg(pcl_pc_nd, ros_pc_nd);
 	ros_pc_nd.header.frame_id = "/velodyne";
 	ros_pc_nd.header.stamp = ros::Time::now();
 
 
+	//cout << index << " / " << i_end / skip << endl;
+	//	pc.header.frame_id = "/velodyne";
+	//	pc.header.stamp = ros::Time::now();
+
+	//	pub_2.publish(ros_pc_c);
 	pub_3.publish(ros_pc_n);
 	pub_4.publish(ros_pc_nd);
+	//	pub.publish(pc);
 }
 
-	using namespace std;
-	int main (int argc, char** argv)
-	{
-		cout << "NormalEstimator_refine start" << endl;
-		ros::init(argc, argv, "NormalEstimationForVelodyne");
-		ros::NodeHandle n;
-		ros::Rate roop(2);
-		getParams(n);
-		ros::Subscriber sub = n.subscribe("/velodyne_points",1,pc_callback);
-		pub_3 = n.advertise<sensor_msgs::PointCloud2>("perfect_velodyne/normal",1);
-		pub_4 = n.advertise<sensor_msgs::PointCloud2>("perfect_velodyne/normal_sphere",1);
-		pub_mk = n.advertise<visualization_msgs::Marker>("perfect_velodyne/normal_vector",1);
-		ros::spin();
-		return 0;
-	}
+using namespace std;
+int main (int argc, char** argv)
+{
+	cout << "NormalEstimator_refine start" << endl;
+	ros::init(argc, argv, "NormalEstimationForVelodyne");
+	ros::NodeHandle n;
+	ros::Rate roop(2);
+	getParams(n);
+	ros::Subscriber sub = n.subscribe("/velodyne_points",1,pc_callback);
+	//	pub = n.advertise<sensor_msgs::PointCloud>("perfect_velodyne",1);
+	//pub_2 = n.advertise<sensor_msgs::PointCloud2>("perfect_velodyne/color",1);
+	pub_3 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal",1);
+	pub_4 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal_sphere",1);
+	pub_mk = n.advertise<visualization_msgs::Marker>("/perfect_velodyne/normal_vector",1);
+	//while(ros::ok()){	
+	ros::spin();
+	//	roop.sleep();
+	//}
+	return 0;
+}
+
