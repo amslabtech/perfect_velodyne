@@ -3,7 +3,7 @@
 
 	<arg name="min" default="2.2f" />
 
-	<node pkg="perfect_velodyne" type="normal_estimation_refine_smoothing" name="NormalEstimationForVelodyne" output="screen" />
+	<node pkg="perfect_velodyne" type="normal_estimation_refine_smoothing" name="NormalEstimationForVelodyne"/>
 		<param name="HNN" value="3l" />
 		<param name="MAX_RANGE" value="120.0f" />
 		<!-- <param name="MIN_RANGE" value="$(arg min)" /> -->
