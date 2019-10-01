@@ -35,8 +35,8 @@
 using namespace std;
 using namespace Eigen;
 
-typedef pcl::PointXYZ Point;
-typedef pcl::PointNormal PointN;
+typedef pcl::PointXYZI Point;
+typedef pcl::PointXYZINormal PointN;
 typedef pcl::PointCloud<PointN> CloudN;
 typedef pcl::PointCloud<PointN>::Ptr CloudNPtr;
 typedef pcl::PointCloud<Point>  Cloud;
@@ -359,7 +359,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 
 		size_t ii = itr(i);
 		Vector3f p_q;
-		p_q << 
+		p_q <<
 			pc->points[ii].x,
 			pc->points[ii].y,
 			pc->points[ii].z;
@@ -467,6 +467,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 		p1.x = p_q(0);
 		p1.y = p_q(1);
 		p1.z = p_q(2);
+        p1.intensity = pc->points[ii].intensity;
 		p1.normal_x = -vec_n(0);
 		p1.normal_y = -vec_n(1);
 		p1.normal_z = -vec_n(2);
@@ -475,6 +476,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 		p2.x = -vec_n(0);
 		p2.y = -vec_n(1);
 		p2.z = -vec_n(2);
+        p2.intensity = pc->points[ii].intensity;
 		p2.normal_x = 0.0;
 		p2.normal_y = 0.0;
 		p2.normal_z = 1.0;
@@ -550,7 +552,7 @@ int main (int argc, char** argv)
 	pub_3 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal",1);
 	pub_4 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal_sphere",1);
 	pub_mk = n.advertise<visualization_msgs::Marker>("/perfect_velodyne/normal_vector",1);
-	//while(ros::ok()){	
+	//while(ros::ok()){
 	ros::spin();
 	//	roop.sleep();
 	//}

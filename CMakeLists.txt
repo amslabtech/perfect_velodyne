@@ -6,7 +6,6 @@ project(perfect_velodyne)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
-  pcl_ros
   roscpp
   sensor_msgs
   std_msgs
