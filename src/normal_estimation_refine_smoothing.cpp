@@ -50,8 +50,8 @@ visualization_msgs::Marker mk;
 CloudPtr pc (new Cloud);
 ros::Publisher pub;
 ros::Publisher pub_2;
-ros::Publisher pub_3;
-ros::Publisher pub_4;
+ros::Publisher normal_cloud_pub;
+ros::Publisher gaussian_sphere_pub;
 ros::Publisher pub_mk;
 
 size_t skip = 5;
@@ -535,8 +535,8 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
     //  pc.header.stamp = ros::Time::now();
 
     //  pub_2.publish(ros_pc_c);
-    pub_3.publish(ros_pc_n);
-    pub_4.publish(ros_pc_nd);
+    normal_cloud_pub.publish(ros_pc_n);
+    gaussian_sphere_pub.publish(ros_pc_nd);
     //  pub.publish(pc);
     std::cout << "time: " << ros::Time::now().toSec() - start_time << "[s]" << std::endl;;
 }
@@ -552,8 +552,8 @@ int main (int argc, char** argv)
     ros::Subscriber sub = n.subscribe("/velodyne_points",1,pc_callback);
     //  pub = n.advertise<sensor_msgs::PointCloud>("perfect_velodyne",1);
     //pub_2 = n.advertise<sensor_msgs::PointCloud2>("perfect_velodyne/color",1);
-    pub_3 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal",1);
-    pub_4 = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal_sphere",1);
+    normal_cloud_pub = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal",1);
+    gaussian_sphere_pub = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal_sphere",1);
     pub_mk = n.advertise<visualization_msgs::Marker>("/perfect_velodyne/normal_vector",1);
     //while(ros::ok()){
     ros::spin();

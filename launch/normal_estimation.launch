@@ -17,5 +17,5 @@
 		<param name="vector_vertical" value="1.5f" />
 		<param name="DENS" value="0.5f" />
 		<param name="CURV" value="0.1f" />
-		<param name="DISP" value="0l" />
+		<param name="DISP" value="1l" />
 </launch>
