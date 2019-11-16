@@ -8,7 +8,7 @@
 		<param name="MAX_RANGE" value="120.0f" />
 		<!-- <param name="MIN_RANGE" value="$(arg min)" /> -->
 		<param name="MIN_RANGE" value="0.5f" />
-		<param name="VR" value="1.0068f" />
+		<param name="VR" value="1.00f" />
 		<!-- <param name="VR" value="0.839f" /> -->
 		<!-- <param name="VR" value="0.5034f" /> -->
 		<param name="skip" value="2.0f" />

@@ -52,6 +52,7 @@ ros::Publisher pub;
 ros::Publisher pub_2;
 ros::Publisher normal_cloud_pub;
 ros::Publisher gaussian_sphere_pub;
+ros::Publisher d_gaussian_sphere_pub;
 ros::Publisher pub_mk;
 
 size_t skip = 5;
@@ -343,6 +344,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
     CloudN pcl_pc_n;
     CloudN pcl_pc_nd;
     CloudN pcl_pc_final;
+    CloudN pcl_pc_d_gauss;
     pcl::fromROSMsg(*msg, *pc);
 
 
@@ -351,6 +353,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
     //  pcl_pc_c->points.resize(i_end);
     pcl_pc_n.points.resize(i_end / skip + 1);
     pcl_pc_nd.points.resize(i_end / skip + 1);
+    pcl_pc_d_gauss.points.resize(i_end / skip + 1);
 
     init_zero(pcl_pc_n);
 
@@ -479,24 +482,27 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
         p2.y = -vec_n(1);
         p2.z = -vec_n(2);
         p2.intensity = pc->points[ii].intensity;
-        p2.normal_x = 0.0;
-        p2.normal_y = 0.0;
-        p2.normal_z = 1.0;
+        p2.normal_x = vec_n(0);
+        p2.normal_y = vec_n(1);
+        p2.normal_z = vec_n(2);
         p2.curvature = 3.0*S(2)/(S(0) + S(1) + S(2));
 
-
-        /*
-           pcl::PointXYZRGBA p3;
-           p3.r = 255*fabs(vec_n(0));
-           p3.g = 255*fabs(vec_n(1));
-           p3.b = 255*fabs(vec_n(2));
-           p3.rgba = value;
-           */
+        PointN p3;
+        double inner_product = p_q.dot(-vec_n);
+        p3.x = -vec_n(0) * inner_product;
+        p3.y = -vec_n(1) * inner_product;
+        p3.z = -vec_n(2) * inner_product;
+        p3.intensity = p1.intensity;
+        p3.normal_x = p1.normal_x;
+        p3.normal_y = p1.normal_y;
+        p3.normal_z = p1.normal_z;
+        p3.curvature = p1.curvature;
 
         size_t index = i / skip;
         //      pcl_pc_c->points[index] = p3;
         pcl_pc_n.points[index] = p1;
         pcl_pc_nd.points[index] = p2;
+        pcl_pc_d_gauss.points[index] = p3;
         //if( (abs(vec_n(2))<0.99999) && (p1.x != 0.0) && (p1.y != 0.0) && (p1.z != 0.0) )
 
         //      pcl_pc_n.points.push_back(p1);
@@ -511,6 +517,7 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
 
     rm_zero(pcl_pc_n);
     rm_zero_nd(pcl_pc_nd);
+    rm_zero_nd(pcl_pc_d_gauss);
 
     //  pcl::toROSMsg(*pcl_pc_c, ros_pc_c);
     //  ros_pc_c.header.frame_id = "/velodyne";
@@ -537,6 +544,11 @@ void pc_callback(sensor_msgs::PointCloud2::Ptr msg)
     //  pub_2.publish(ros_pc_c);
     normal_cloud_pub.publish(ros_pc_n);
     gaussian_sphere_pub.publish(ros_pc_nd);
+
+    sensor_msgs::PointCloud2 d_normal;
+    pcl::toROSMsg(pcl_pc_d_gauss, d_normal);
+    d_normal.header = msg->header;
+    d_gaussian_sphere_pub.publish(d_normal);
     //  pub.publish(pc);
     std::cout << "time: " << ros::Time::now().toSec() - start_time << "[s]" << std::endl;;
 }
@@ -554,6 +566,7 @@ int main (int argc, char** argv)
     //pub_2 = n.advertise<sensor_msgs::PointCloud2>("perfect_velodyne/color",1);
     normal_cloud_pub = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal",1);
     gaussian_sphere_pub = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/normal_sphere",1);
+    d_gaussian_sphere_pub = n.advertise<sensor_msgs::PointCloud2>("/perfect_velodyne/d_gaussian_sphere",1);
     pub_mk = n.advertise<visualization_msgs::Marker>("/perfect_velodyne/normal_vector",1);
     //while(ros::ok()){
     ros::spin();
