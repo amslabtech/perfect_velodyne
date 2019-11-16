@@ -127,8 +127,8 @@ void rm_zero_nd(CloudN &pc){
         float c = pc.points[i].curvature;
         float d = sqrt(x*x + y*y + z*z);
 
-        //if((d < MAX_RANGE) && (d  > MIN_RANGE) && (c < CURV)){}
-        if( (d > 0.1) && (c < 0.18) ){
+        if((d < MAX_RANGE) && (d > MIN_RANGE) && (c < CURV))
+        {
             tmp.points.push_back(pc.points[i]);
         }
     }
