@@ -161,6 +161,7 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 add_executable(normal_estimation_refine src/normal_estimation_refine.cpp)
 add_executable(normal_estimation_refine_smoothing src/normal_estimation_refine_smoothing.cpp)
 # add_executable(pose_estimation src/pose_estimation.cpp)
+add_executable(normal_estimator src/normal_estimator.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -175,6 +176,7 @@ add_executable(normal_estimation_refine_smoothing src/normal_estimation_refine_s
 target_link_libraries(normal_estimation_refine  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(normal_estimation_refine_smoothing  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # target_link_libraries(pose_estimation  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(normal_estimator  ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 #############
 ## Install ##
