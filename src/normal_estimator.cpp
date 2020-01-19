@@ -103,6 +103,7 @@ void NormalEstimator::cloud_callback(const sensor_msgs::PointCloud2ConstPtr& msg
 
     CloudXYZIPtr subscribed_cloud_ptr(new CloudXYZI);
     pcl::fromROSMsg(*msg, *subscribed_cloud_ptr);
+    std::cout << "subscribed cloud size: " << subscribed_cloud_ptr->points.size() << std::endl;
 
     CloudXYZINPtr cloud_ptr(new CloudXYZIN);
     pcl::copyPointCloud(*subscribed_cloud_ptr, *cloud_ptr);
@@ -111,6 +112,7 @@ void NormalEstimator::cloud_callback(const sensor_msgs::PointCloud2ConstPtr& msg
 
     remove_invalid_points(cloud_ptr);
 
+    std::cout << "output cloud size: " << cloud_ptr->points.size() << std::endl;
     normal_cloud_pub.publish(*cloud_ptr);
 
     if((gaussian_sphere_pub.getNumSubscribers() > 0) || (gaussian_sphere_filtered_pub.getNumSubscribers() > 0)){
@@ -316,6 +318,14 @@ void NormalEstimator::remove_invalid_points(CloudXYZINPtr& cloud)
     cloud_.points.clear();
     cloud_.points.reserve(cloud->points.size());
     for(int i=0;i<size;i++){
+        double n_x = cloud->points[i].normal_x;
+        double n_y = cloud->points[i].normal_y;
+        double n_z = cloud->points[i].normal_z;
+        // if normal is not estimated
+        if(n_x * n_x + n_y * n_y + n_z * n_z == 0.0){
+            continue;
+        }
+
         double p_x = cloud->points[i].x;
         double p_y = cloud->points[i].y;
         double p_z = cloud->points[i].z;
