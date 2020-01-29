@@ -32,8 +32,9 @@ namespace perfect_velodyne
                 auto results = std::make_shared<rcl_interfaces::msg::SetParametersResult>();
                 for(auto param : params){
                     if(param.get_name() == "QUERY_RADIUS"){
-                        if(QUERY_RADIUS > 0){
-                            QUERY_RADIUS = param.as_double();
+                        double query_radius = param.as_double();
+                        if(query_radius > 0){
+                            QUERY_RADIUS = query_radius;
                             results->successful = true;
                             results->reason = "";
                         }else{
