@@ -1,0 +1,3 @@
+normal_estimator:
+    ros__parameters:
+        MAX_RANGE: 120.0
