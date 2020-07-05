@@ -359,3 +359,6 @@ namespace perfect_velodyne
     // }
 
 }// perfect_velodyne
+
+#include "rclcpp_components/register_node_macro.hpp"
+RCLCPP_COMPONENTS_REGISTER_NODE(perfect_velodyne::NormalEstimatorComponent)
