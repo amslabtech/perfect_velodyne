@@ -1,9 +1,9 @@
 import os
+from launch import LaunchDescription
+from launch_ros.actions import Node
 
 config_path = os.path.join(os.path.dirname(__file__), '../config')
 
-from launch import LaunchDescription
-from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
