@@ -1,4 +1,4 @@
-#include <perfect_velodyne/normal_estimator_component.h>
+#include <perfect_velodyne/normal_estimator_component.hpp>
 
 namespace perfect_velodyne
 {
