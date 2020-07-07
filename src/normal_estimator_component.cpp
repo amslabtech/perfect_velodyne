@@ -22,41 +22,41 @@ namespace perfect_velodyne
 NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & options)
 : Node("normal_estimator", options)
 {
-  declare_parameter("MAX_RANGE", 120.0);
-  get_parameter("MAX_RANGE", MAX_RANGE);
-  declare_parameter("MIN_RANGE", 0.5);
-  get_parameter("MIN_RANGE", MIN_RANGE);
-  declare_parameter("SKIP", 1);
-  get_parameter("SKIP", SKIP);
-  declare_parameter("VERTICAL_POINTS", 1);
-  get_parameter("VERTICAL_POINTS", VERTICAL_POINTS);
-  declare_parameter("HORIZONTAL_POINTS", 5);
-  get_parameter("HORIZONTAL_POINTS", HORIZONTAL_POINTS);
-  declare_parameter("LAYER_NUM", 32);
-  get_parameter("LAYER_NUM", LAYER_NUM);
-  declare_parameter("QUERY_RADIUS", 0.5);
-  get_parameter("QUERY_RADIUS", QUERY_RADIUS);
-  declare_parameter("DENSITY", 0.5);
-  get_parameter("DENSITY", DENSITY);
-  declare_parameter("GAUSSIAN_SPHERE_RADIUS", 1.0);
-  get_parameter("GAUSSIAN_SPHERE_RADIUS", GAUSSIAN_SPHERE_RADIUS);
-  declare_parameter("MAX_CURVATURE_THRESHOLD", 0.002);
-  get_parameter("MAX_CURVATURE_THRESHOLD", MAX_CURVATURE_THRESHOLD);
+  declare_parameter("max_range", 120.0);
+  get_parameter("max_range", max_range_);
+  declare_parameter("min_range", 0.5);
+  get_parameter("min_range", min_range_);
+  declare_parameter("skip", 1);
+  get_parameter("skip", skip_);
+  declare_parameter("vertical_points", 1);
+  get_parameter("vertical_points", vertical_points_);
+  declare_parameter("horizontal_points", 5);
+  get_parameter("horizontal_points", horizontal_points_);
+  declare_parameter("layer_num", 32);
+  get_parameter("layer_num", layer_num_);
+  declare_parameter("query_radius", 0.5);
+  get_parameter("query_radius", query_radius_);
+  declare_parameter("density", 0.5);
+  get_parameter("density", density_);
+  declare_parameter("gaussian_sphere_radius", 1.0);
+  get_parameter("gaussian_sphere_radius", gaussian_sphere_radius_);
+  declare_parameter("max_curvature_threshold", 0.002);
+  get_parameter("max_curvature_threshold", max_curvature_threshold_);
 
   this->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> params) -> rcl_interfaces::msg::SetParametersResult
     {
       auto results = std::make_shared<rcl_interfaces::msg::SetParametersResult>();
       for (auto param : params) {
-        if (param.get_name() == "QUERY_RADIUS") {
+        if (param.get_name() == "query_radius") {
           double query_radius = param.as_double();
           if (query_radius > 0) {
-            QUERY_RADIUS = query_radius;
+            query_radius_ = query_radius;
             results->successful = true;
             results->reason = "";
           } else {
             results->successful = false;
-            results->reason = "QUERY_RADIUS must be over 0";
+            results->reason = "query_radius must be over 0";
           }
         }
       }
@@ -76,29 +76,29 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
       std::cout << "subscribed cloud size: " << subscribed_cloud_ptr->points.size() << std::endl;
       cloud_callback(subscribed_cloud_ptr);
     };
-  cloud_sub = create_subscription<sensor_msgs::msg::PointCloud2>("velodyne_points", 1, callback);
-  normal_cloud_pub = create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points", 1);
-  gaussian_sphere_pub = create_publisher<sensor_msgs::msg::PointCloud2>(
+  cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>("velodyne_points", 1, callback);
+  normal_cloud_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points", 1);
+  gaussian_sphere_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/normal_sphere", 1);
-  gaussian_sphere_filtered_pub = create_publisher<sensor_msgs::msg::PointCloud2>(
+  gaussian_sphere_filtered_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/normal_sphere/filtered", 1);
-  d_gaussian_sphere_pub = create_publisher<sensor_msgs::msg::PointCloud2>(
+  d_gaussian_sphere_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/d_gaussian_sphere", 1);
-  d_gaussian_sphere_filtered_pub = create_publisher<sensor_msgs::msg::PointCloud2>(
+  d_gaussian_sphere_filtered_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/d_gaussian_sphere/filtered", 1);
-  normal_marker_pub = create_publisher<visualization_msgs::msg::Marker>(
+  normal_marker_pub_ = create_publisher<visualization_msgs::msg::Marker>(
     "perfect_velodyne/normal_vector", 1);
 
-  std::cout << "MAX_RANGE: " << MAX_RANGE << std::endl;
-  std::cout << "MIN_RANGE: " << MIN_RANGE << std::endl;
-  std::cout << "SKIP: " << SKIP << std::endl;
-  std::cout << "VERTICAL_POINTS: " << VERTICAL_POINTS << std::endl;
-  std::cout << "HORIZONTAL_POINTS: " << HORIZONTAL_POINTS << std::endl;
-  std::cout << "LAYER_NUM: " << LAYER_NUM << std::endl;
-  std::cout << "QUERY_RADIUS: " << QUERY_RADIUS << std::endl;
-  std::cout << "DENSITY: " << DENSITY << std::endl;
-  std::cout << "GAUSSIAN_SPHERE_RADIUS: " << GAUSSIAN_SPHERE_RADIUS << std::endl;
-  std::cout << "MAX_CURVATURE_THRESHOLD: " << MAX_CURVATURE_THRESHOLD << std::endl;
+  std::cout << "max_range: " << max_range_ << std::endl;
+  std::cout << "min_range: " << min_range_ << std::endl;
+  std::cout << "skip: " << skip_ << std::endl;
+  std::cout << "vertical_points: " << vertical_points_ << std::endl;
+  std::cout << "horizontal_points: " << horizontal_points_ << std::endl;
+  std::cout << "layer_num: " << layer_num_ << std::endl;
+  std::cout << "query_radius: " << query_radius_ << std::endl;
+  std::cout << "density: " << density_ << std::endl;
+  std::cout << "gaussian_sphere_radius: " << gaussian_sphere_radius_ << std::endl;
+  std::cout << "max_curvature_threshold: " << max_curvature_threshold_ << std::endl;
 }
 
 void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_ptr)
@@ -118,33 +118,33 @@ void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_pt
   sensor_msgs::msg::PointCloud2 normal_cloud_msg;
   pcl::toROSMsg(*cloud_ptr, normal_cloud_msg);
   pcl_conversions::fromPCL(subscribed_cloud_ptr->header, normal_cloud_msg.header);
-  normal_cloud_pub->publish(normal_cloud_msg);
+  normal_cloud_pub_->publish(normal_cloud_msg);
 
   CloudXYZINPtr gaussian_sphere(new CloudXYZIN);
   get_gaussian_sphere(cloud_ptr, gaussian_sphere);
   sensor_msgs::msg::PointCloud2 gaussian_sphere_msg;
   pcl::toROSMsg(*gaussian_sphere, gaussian_sphere_msg);
   gaussian_sphere_msg.header = normal_cloud_msg.header;
-  gaussian_sphere_pub->publish(gaussian_sphere_msg);
+  gaussian_sphere_pub_->publish(gaussian_sphere_msg);
 
   filter_curvature(gaussian_sphere);
   sensor_msgs::msg::PointCloud2 gaussian_sphere_filtered_msg;
   pcl::toROSMsg(*gaussian_sphere, gaussian_sphere_filtered_msg);
   gaussian_sphere_filtered_msg.header = normal_cloud_msg.header;
-  gaussian_sphere_filtered_pub->publish(gaussian_sphere_filtered_msg);
+  gaussian_sphere_filtered_pub_->publish(gaussian_sphere_filtered_msg);
 
   CloudXYZINPtr d_gaussian_sphere(new CloudXYZIN);
   get_d_gaussian_sphere(cloud_ptr, d_gaussian_sphere);
   sensor_msgs::msg::PointCloud2 d_gaussian_sphere_msg;
   pcl::toROSMsg(*d_gaussian_sphere, d_gaussian_sphere_msg);
   d_gaussian_sphere_msg.header = normal_cloud_msg.header;
-  d_gaussian_sphere_pub->publish(d_gaussian_sphere_msg);
+  d_gaussian_sphere_pub_->publish(d_gaussian_sphere_msg);
 
   filter_curvature(d_gaussian_sphere);
   sensor_msgs::msg::PointCloud2 d_gaussian_sphere_filtered_msg;
   pcl::toROSMsg(*d_gaussian_sphere, d_gaussian_sphere_filtered_msg);
   d_gaussian_sphere_filtered_msg.header = normal_cloud_msg.header;
-  d_gaussian_sphere_filtered_pub->publish(d_gaussian_sphere_filtered_msg);
+  d_gaussian_sphere_filtered_pub_->publish(d_gaussian_sphere_filtered_msg);
 
   publish_normal_marker(cloud_ptr);
 
@@ -158,44 +158,44 @@ void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_pt
 void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
 {
   std::cout << "estimate normal" << std::endl;
-  const int SIZE = cloud->points.size();
-  const int QUERY_SIZE = (2 * HORIZONTAL_POINTS + 1) * (2 * VERTICAL_POINTS + 1);
+  const int size = cloud->points.size();
+  const int query_size = (2 * horizontal_points_ + 1) * (2 * vertical_points_ + 1);
 
-        #pragma omp parallel for
-  for (int i = 0; i < SIZE; i += SKIP) {
+  #pragma omp parallel for
+  for (int i = 0; i < size; i += skip_) {
     Eigen::Vector3d p_q(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);  // query point
     double distance_q = p_q.norm();
     if (!validate_range(distance_q)) {
       continue;
     }
-    int order = i % LAYER_NUM;
+    int order = i % layer_num_;
     int ring_index = get_ring_index_from_firing_order(order);
     int yaw_index = i - order;
 
-    std::vector<double> x_data(QUERY_SIZE, 0);
-    std::vector<double> y_data(QUERY_SIZE, 0);
-    std::vector<double> z_data(QUERY_SIZE, 0);
+    std::vector<double> x_data(query_size, 0);
+    std::vector<double> y_data(query_size, 0);
+    std::vector<double> z_data(query_size, 0);
     Eigen::Vector3d sum = Eigen::Vector3d::Zero();
 
     int valid_point_count = 0;
-    for (int j = -VERTICAL_POINTS; j <= VERTICAL_POINTS; j++) {
+    for (int j = -vertical_points_; j <= vertical_points_; j++) {
       int v_ring_index = ring_index + j;
       if (!validate_ring(v_ring_index)) {
         continue;
       }
       int v_index = yaw_index + get_firing_order_from_ring_index(v_ring_index);
 
-      for (int k = -HORIZONTAL_POINTS; k <= HORIZONTAL_POINTS; k++) {
-        int h_index = v_index + k * LAYER_NUM;
+      for (int k = -horizontal_points_; k <= horizontal_points_; k++) {
+        int h_index = v_index + k * layer_num_;
         if (0 > h_index) {
           continue;
-        } else if (h_index >= SIZE) {
+        } else if (h_index >= size) {
           continue;
         }
         Eigen::Vector3d p_h(cloud->points[h_index].x, cloud->points[h_index].y,
           cloud->points[h_index].z);
         double distance_q_h = (p_h - p_q).norm();
-        if (distance_q_h > QUERY_RADIUS) {
+        if (distance_q_h > query_radius_) {
           continue;
         }
         x_data[valid_point_count] = p_h(0);
@@ -205,7 +205,7 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
         valid_point_count++;
       }
     }
-    if (valid_point_count < QUERY_SIZE * DENSITY) {
+    if (valid_point_count < query_size * density_) {
       continue;
     }
     // PCA
@@ -256,13 +256,13 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
 
 bool NormalEstimatorComponent::validate_range(double range)
 {
-  return (MIN_RANGE <= range) && (range <= MAX_RANGE);
+  return (min_range_ <= range) && (range <= max_range_);
 }
 
 int NormalEstimatorComponent::get_ring_index_from_firing_order(int order)
 {
   if (order % 2) {
-    return order / 2 + LAYER_NUM / 2;
+    return order / 2 + layer_num_ / 2;
   } else {
     return order / 2;
   }
@@ -270,17 +270,17 @@ int NormalEstimatorComponent::get_ring_index_from_firing_order(int order)
 
 int NormalEstimatorComponent::get_firing_order_from_ring_index(int index)
 {
-  const int LAYER_NUM_2 = LAYER_NUM / 2;
-  if (index < LAYER_NUM_2) {
+  const int layer_num_2 = layer_num_ / 2;
+  if (index < layer_num_2) {
     return 2 * index;
   } else {
-    return 2 * (index - LAYER_NUM_2) + 1;
+    return 2 * (index - layer_num_2) + 1;
   }
 }
 
 bool NormalEstimatorComponent::validate_ring(int index)
 {
-  return (0 <= index) && (index < LAYER_NUM);
+  return (0 <= index) && (index < layer_num_);
 }
 
 void NormalEstimatorComponent::get_gaussian_sphere(
@@ -289,9 +289,9 @@ void NormalEstimatorComponent::get_gaussian_sphere(
 {
   pcl::copyPointCloud(*cloud, *gaussian_sphere);
   for (auto & p : gaussian_sphere->points) {
-    p.x = GAUSSIAN_SPHERE_RADIUS * -p.normal_x;
-    p.y = GAUSSIAN_SPHERE_RADIUS * -p.normal_y;
-    p.z = GAUSSIAN_SPHERE_RADIUS * -p.normal_z;
+    p.x = gaussian_sphere_radius_ * -p.normal_x;
+    p.y = gaussian_sphere_radius_ * -p.normal_y;
+    p.z = gaussian_sphere_radius_ * -p.normal_z;
   }
 }
 
@@ -333,16 +333,16 @@ void NormalEstimatorComponent::publish_normal_marker(const CloudXYZINPtr & cloud
     marker.points.push_back(p2);
   }
   pcl_conversions::fromPCL(cloud->header, marker.header);
-  normal_marker_pub->publish(marker);
+  normal_marker_pub_->publish(marker);
 }
 
 void NormalEstimatorComponent::remove_invalid_points(CloudXYZINPtr & cloud)
 {
   int size = cloud->points.size();
-  CloudXYZIN cloud_;
-  cloud_.header = cloud->header;
-  cloud_.points.clear();
-  cloud_.points.reserve(cloud->points.size());
+  CloudXYZIN filtered_cloud;
+  filtered_cloud.header = cloud->header;
+  filtered_cloud.points.clear();
+  filtered_cloud.points.reserve(cloud->points.size());
   for (int i = 0; i < size; i++) {
     double n_x = cloud->points[i].normal_x;
     double n_y = cloud->points[i].normal_y;
@@ -356,12 +356,12 @@ void NormalEstimatorComponent::remove_invalid_points(CloudXYZINPtr & cloud)
     double p_y = cloud->points[i].y;
     double p_z = cloud->points[i].z;
     double distance = sqrt(p_x * p_x + p_y * p_y + p_z * p_z);
-    if ((MIN_RANGE < distance) && (distance < MAX_RANGE)) {
-      cloud_.points.push_back(cloud->points[i]);
+    if ((min_range_ < distance) && (distance < max_range_)) {
+      filtered_cloud.points.push_back(cloud->points[i]);
     }
   }
   cloud->points.clear();
-  *cloud = cloud_;
+  *cloud = filtered_cloud;
   cloud->width = cloud->points.size();
   cloud->height = 1;
 }
@@ -369,17 +369,17 @@ void NormalEstimatorComponent::remove_invalid_points(CloudXYZINPtr & cloud)
 void NormalEstimatorComponent::filter_curvature(CloudXYZINPtr & cloud)
 {
   int size = cloud->points.size();
-  CloudXYZIN cloud_;
-  cloud_.header = cloud->header;
-  cloud_.points.clear();
-  cloud_.points.reserve(cloud->points.size());
+  CloudXYZIN filtered_cloud;
+  filtered_cloud.header = cloud->header;
+  filtered_cloud.points.clear();
+  filtered_cloud.points.reserve(cloud->points.size());
   for (int i = 0; i < size; i++) {
-    if (cloud->points[i].curvature < MAX_CURVATURE_THRESHOLD) {
-      cloud_.points.push_back(cloud->points[i]);
+    if (cloud->points[i].curvature < max_curvature_threshold_) {
+      filtered_cloud.points.push_back(cloud->points[i]);
     }
   }
   cloud->points.clear();
-  *cloud = cloud_;
+  *cloud = filtered_cloud;
   cloud->width = cloud->points.size();
   cloud->height = 1;
 }

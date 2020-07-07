@@ -94,24 +94,24 @@ public:
   // void process(void);
 
 private:
-  double MAX_RANGE;
-  double MIN_RANGE;
-  int SKIP;
-  int VERTICAL_POINTS;
-  int HORIZONTAL_POINTS;
-  int LAYER_NUM;
-  double QUERY_RADIUS;
-  double DENSITY;
-  double GAUSSIAN_SPHERE_RADIUS;
-  double MAX_CURVATURE_THRESHOLD;
+  double max_range_;
+  double min_range_;
+  int skip_;
+  int vertical_points_;
+  int horizontal_points_;
+  int layer_num_;
+  double query_radius_;
+  double density_;
+  double gaussian_sphere_radius_;
+  double max_curvature_threshold_;
 
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normal_cloud_pub;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_pub;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_filtered_pub;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_pub;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_filtered_pub;
-  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr normal_marker_pub;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normal_cloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_filtered_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_filtered_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr normal_marker_pub_;
 };
 }  //  namespace perfect_velodyne
 
