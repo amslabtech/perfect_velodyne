@@ -1,5 +1,8 @@
 #include <perfect_velodyne/normal_estimator_component.hpp>
 
+#include <memory>
+#include <vector>
+
 namespace perfect_velodyne
 {
 NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & options)
@@ -146,7 +149,7 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
 
         #pragma omp parallel for
   for (int i = 0; i < SIZE; i += SKIP) {
-    Eigen::Vector3d p_q(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);        // query point
+    Eigen::Vector3d p_q(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);  // query point
     double distance_q = p_q.norm();
     if (!validate_range(distance_q)) {
       continue;
@@ -192,7 +195,7 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
       continue;
     }
     // PCA
-    Eigen::Vector3d ave = sum / (double)valid_point_count;
+    Eigen::Vector3d ave = sum / static_cast<double>(valid_point_count);
     double sigma_xx = 0;
     double sigma_xy = 0;
     double sigma_xz = 0;
@@ -211,7 +214,7 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
     vcov << sigma_xx, sigma_xy, sigma_xz,
       sigma_xy, sigma_yy, sigma_yz,
       sigma_xz, sigma_yz, sigma_zz;
-    vcov /= (double)valid_point_count;
+    vcov /= static_cast<double>(valid_point_count);
     Eigen::EigenSolver<Eigen::Matrix3d> es(vcov);
     Eigen::Vector3d eigen_values = es.eigenvalues().real();
     Eigen::Matrix3d eigen_vectors = es.eigenvectors().real();
@@ -373,7 +376,7 @@ void NormalEstimatorComponent::filter_curvature(CloudXYZINPtr & cloud)
 //     ros::spin();
 // }
 
-}// perfect_velodyne
+}  // namespace perfect_velodyne
 
 #include "rclcpp_components/register_node_macro.hpp"
 RCLCPP_COMPONENTS_REGISTER_NODE(perfect_velodyne::NormalEstimatorComponent)

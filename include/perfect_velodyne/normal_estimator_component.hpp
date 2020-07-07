@@ -1,5 +1,5 @@
-#ifndef __NORMAL_ESTIMATOR_COMPONENT_H
-#define __NORMAL_ESTIMATOR_COMPONENT_H
+#ifndef PERFECT_VELODYNE__NORMAL_ESTIMATOR_COMPONENT_HPP_
+#define PERFECT_VELODYNE__NORMAL_ESTIMATOR_COMPONENT_HPP_
 
 #if __cplusplus
 extern "C" {
@@ -36,7 +36,7 @@ extern "C" {
 #endif
 
 #if __cplusplus
-} // extern "C"
+}  // extern "C"
 #endif
 
 #include <rclcpp/rclcpp.hpp>
@@ -99,6 +99,6 @@ private:
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_filtered_pub;
   rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr normal_marker_pub;
 };
-}// perfect_velodyne
+}  //  namespace perfect_velodyne
 
-#endif// __NORMAL_ESTIMATOR_COMPONENT_H
+#endif  // PERFECT_VELODYNE__NORMAL_ESTIMATOR_COMPONENT_HPP_
