@@ -104,7 +104,6 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
 void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_ptr)
 {
   std::cout << "=== normal estimator === " << std::endl;
-  // double start_time = ros::Time::now().toSec();
   auto start_time = std::chrono::system_clock::now();
 
   CloudXYZINPtr cloud_ptr(new CloudXYZIN);
@@ -148,7 +147,6 @@ void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_pt
 
   publish_normal_marker(cloud_ptr);
 
-  // std::cout << "time: " << ros::Time::now().toSec() - start_time << "[s]" << std::endl;
   auto end_time = std::chrono::system_clock::now();
   std::cout << "time: " <<
     std::chrono::duration<double,
@@ -383,12 +381,6 @@ void NormalEstimatorComponent::filter_curvature(CloudXYZINPtr & cloud)
   cloud->width = cloud->points.size();
   cloud->height = 1;
 }
-
-// void NormalEstimatorComponent::process(void)
-// {
-//     std::cout << "=== normal estimator === " << std::endl;
-//     ros::spin();
-// }
 
 }  // namespace perfect_velodyne
 

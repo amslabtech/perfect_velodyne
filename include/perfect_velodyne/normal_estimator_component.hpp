@@ -91,7 +91,6 @@ public:
   void publish_normal_marker(const CloudXYZINPtr &);
   void remove_invalid_points(CloudXYZINPtr &);
   void filter_curvature(CloudXYZINPtr &);
-  // void process(void);
 
 private:
   double max_range_;
