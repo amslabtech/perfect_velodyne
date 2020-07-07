@@ -13,12 +13,11 @@
 # limitations under the License.
 
 import os
+
 import launch
-import launch.actions
-import launch.substitutions
 import launch_ros.actions
 
-config_path = os.path.join(os.path.dirname(__file__), '../config')
+from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
@@ -28,7 +27,9 @@ def generate_launch_description():
             node_namespace='',
             executable='normal_estimator_node',
             name='normal_estimator',
-            parameters=[os.path.join(config_path, 'param.yaml')],
+            parameters=[
+                os.path.join(get_package_share_directory('perfect_velodyne'), 'config/param.yaml')
+                ],
             output='screen'
         )
     ])
