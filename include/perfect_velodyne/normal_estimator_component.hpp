@@ -53,52 +53,52 @@ extern "C" {
 
 namespace perfect_velodyne
 {
-    class NormalEstimatorComponent: public rclcpp::Node
-    {
-    public:
-        typedef pcl::PointXYZI PointXYZI;
-        typedef pcl::PointCloud<PointXYZI> CloudXYZI;
-        typedef pcl::PointCloud<PointXYZI>::Ptr CloudXYZIPtr;
-        typedef pcl::PointXYZINormal PointXYZIN;
-        typedef pcl::PointCloud<PointXYZIN> CloudXYZIN;
-        typedef pcl::PointCloud<PointXYZIN>::Ptr CloudXYZINPtr;
+class NormalEstimatorComponent : public rclcpp::Node
+{
+public:
+  typedef pcl::PointXYZI PointXYZI;
+  typedef pcl::PointCloud<PointXYZI> CloudXYZI;
+  typedef pcl::PointCloud<PointXYZI>::Ptr CloudXYZIPtr;
+  typedef pcl::PointXYZINormal PointXYZIN;
+  typedef pcl::PointCloud<PointXYZIN> CloudXYZIN;
+  typedef pcl::PointCloud<PointXYZIN>::Ptr CloudXYZINPtr;
 
-        PERFECT_VELODYNE_NORMAL_ESTIMATOR_PUBLIC
-        explicit NormalEstimatorComponent(const rclcpp::NodeOptions&);
+  PERFECT_VELODYNE_NORMAL_ESTIMATOR_PUBLIC
+  explicit NormalEstimatorComponent(const rclcpp::NodeOptions &);
 
-        void cloud_callback(CloudXYZIPtr&);
-        void estimate_normal(CloudXYZINPtr&);
-        bool validate_range(double);
-        int get_ring_index_from_firing_order(int);
-        int get_firing_order_from_ring_index(int);
-        bool validate_ring(int);
-        void get_gaussian_sphere(const CloudXYZINPtr&, CloudXYZINPtr&);
-        void get_d_gaussian_sphere(const CloudXYZINPtr&, CloudXYZINPtr&);
-        void publish_normal_marker(const CloudXYZINPtr&);
-        void remove_invalid_points(CloudXYZINPtr&);
-        void filter_curvature(CloudXYZINPtr&);
-        // void process(void);
+  void cloud_callback(CloudXYZIPtr &);
+  void estimate_normal(CloudXYZINPtr &);
+  bool validate_range(double);
+  int get_ring_index_from_firing_order(int);
+  int get_firing_order_from_ring_index(int);
+  bool validate_ring(int);
+  void get_gaussian_sphere(const CloudXYZINPtr &, CloudXYZINPtr &);
+  void get_d_gaussian_sphere(const CloudXYZINPtr &, CloudXYZINPtr &);
+  void publish_normal_marker(const CloudXYZINPtr &);
+  void remove_invalid_points(CloudXYZINPtr &);
+  void filter_curvature(CloudXYZINPtr &);
+  // void process(void);
 
-    private:
-        double MAX_RANGE;
-        double MIN_RANGE;
-        int SKIP;
-        int VERTICAL_POINTS;
-        int HORIZONTAL_POINTS;
-        int LAYER_NUM;
-        double QUERY_RADIUS;
-        double DENSITY;
-        double GAUSSIAN_SPHERE_RADIUS;
-        double MAX_CURVATURE_THRESHOLD;
+private:
+  double MAX_RANGE;
+  double MIN_RANGE;
+  int SKIP;
+  int VERTICAL_POINTS;
+  int HORIZONTAL_POINTS;
+  int LAYER_NUM;
+  double QUERY_RADIUS;
+  double DENSITY;
+  double GAUSSIAN_SPHERE_RADIUS;
+  double MAX_CURVATURE_THRESHOLD;
 
-        rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normal_cloud_pub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_pub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_filtered_pub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_pub;
-        rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_filtered_pub;
-        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr normal_marker_pub;
-    };
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr normal_cloud_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr gaussian_sphere_filtered_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_pub;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr d_gaussian_sphere_filtered_pub;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr normal_marker_pub;
+};
 }// perfect_velodyne
 
 #endif// __NORMAL_ESTIMATOR_COMPONENT_H
