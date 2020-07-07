@@ -43,7 +43,7 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
   declare_parameter("MAX_CURVATURE_THRESHOLD", 0.002);
   get_parameter("MAX_CURVATURE_THRESHOLD", MAX_CURVATURE_THRESHOLD);
 
-  this->set_on_parameters_set_callback(
+  this->add_on_set_parameters_callback(
     [this](const std::vector<rclcpp::Parameter> params) -> rcl_interfaces::msg::SetParametersResult
     {
       auto results = std::make_shared<rcl_interfaces::msg::SetParametersResult>();
