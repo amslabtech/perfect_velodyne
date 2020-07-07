@@ -68,15 +68,9 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
     }
   );
 
-  auto callback =
-    [this](const typename sensor_msgs::msg::PointCloud2::SharedPtr msg) -> void
-    {
-      CloudXYZIPtr subscribed_cloud_ptr(new CloudXYZI);
-      pcl::fromROSMsg(*msg, *subscribed_cloud_ptr);
-      std::cout << "subscribed cloud size: " << subscribed_cloud_ptr->points.size() << std::endl;
-      cloud_callback(subscribed_cloud_ptr);
-    };
-  cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>("velodyne_points", 1, callback);
+  cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
+    "velodyne_points", 1,
+    std::bind(&NormalEstimatorComponent::cloud_callback, this, std::placeholders::_1));
   normal_cloud_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points", 1);
   gaussian_sphere_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/normal_sphere", 1);
@@ -101,13 +95,14 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
   std::cout << "max_curvature_threshold: " << max_curvature_threshold_ << std::endl;
 }
 
-void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_ptr)
+void NormalEstimatorComponent::cloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
   std::cout << "=== normal estimator === " << std::endl;
   auto start_time = std::chrono::system_clock::now();
 
   CloudXYZINPtr cloud_ptr(new CloudXYZIN);
-  pcl::copyPointCloud(*subscribed_cloud_ptr, *cloud_ptr);
+  pcl::fromROSMsg(*msg, *cloud_ptr);
+  std::cout << "subscribed cloud size: " << cloud_ptr->points.size() << std::endl;
 
   estimate_normal(cloud_ptr);
 
@@ -116,7 +111,7 @@ void NormalEstimatorComponent::cloud_callback(CloudXYZIPtr & subscribed_cloud_pt
   std::cout << "output cloud size: " << cloud_ptr->points.size() << std::endl;
   sensor_msgs::msg::PointCloud2 normal_cloud_msg;
   pcl::toROSMsg(*cloud_ptr, normal_cloud_msg);
-  pcl_conversions::fromPCL(subscribed_cloud_ptr->header, normal_cloud_msg.header);
+  pcl_conversions::fromPCL(cloud_ptr->header, normal_cloud_msg.header);
   normal_cloud_pub_->publish(normal_cloud_msg);
 
   CloudXYZINPtr gaussian_sphere(new CloudXYZIN);

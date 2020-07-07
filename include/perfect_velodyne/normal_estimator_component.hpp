@@ -80,7 +80,7 @@ public:
   PERFECT_VELODYNE_NORMAL_ESTIMATOR_PUBLIC
   explicit NormalEstimatorComponent(const rclcpp::NodeOptions &);
 
-  void cloud_callback(CloudXYZIPtr &);
+  void cloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr);
   void estimate_normal(CloudXYZINPtr &);
   bool validate_range(double);
   int get_ring_index_from_firing_order(int);
