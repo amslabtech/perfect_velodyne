@@ -49,7 +49,7 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
       auto results = std::make_shared<rcl_interfaces::msg::SetParametersResult>();
       for (auto param : params) {
         if (param.get_name() == "query_radius") {
-          double query_radius = param.as_double();
+          const double query_radius = param.as_double();
           if (query_radius > 0) {
             query_radius_ = query_radius;
             results->successful = true;
@@ -98,7 +98,7 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
 void NormalEstimatorComponent::cloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
   RCLCPP_INFO(get_logger(), "=== normal estimator === ");
-  auto start_time = std::chrono::system_clock::now();
+  const auto start_time = std::chrono::system_clock::now();
 
   CloudXYZINPtr cloud_ptr(new CloudXYZIN);
   pcl::fromROSMsg(*msg, *cloud_ptr);
@@ -142,7 +142,7 @@ void NormalEstimatorComponent::cloud_callback(const sensor_msgs::msg::PointCloud
 
   publish_normal_marker(cloud_ptr);
 
-  auto end_time = std::chrono::system_clock::now();
+  const auto end_time = std::chrono::system_clock::now();
   const double duration = std::chrono::duration<double, std::milli>(end_time - start_time).count();
   RCLCPP_INFO_STREAM(get_logger(), "process time: " << duration << "[s]");
 }
@@ -155,38 +155,39 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
 
   #pragma omp parallel for
   for (int i = 0; i < size; i += skip_) {
-    Eigen::Vector3d p_q(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);  // query point
-    double distance_q = p_q.norm();
+    // query point
+    const Eigen::Vector3d p_q(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
+    const double distance_q = p_q.norm();
     if (!validate_range(distance_q)) {
       continue;
     }
-    int order = i % layer_num_;
-    int ring_index = get_ring_index_from_firing_order(order);
-    int yaw_index = i - order;
+    const unsigned int order = i % layer_num_;
+    const unsigned int ring_index = get_ring_index_from_firing_order(order);
+    const unsigned int yaw_index = i - order;
 
     std::vector<double> x_data(query_size, 0);
     std::vector<double> y_data(query_size, 0);
     std::vector<double> z_data(query_size, 0);
     Eigen::Vector3d sum = Eigen::Vector3d::Zero();
 
-    int valid_point_count = 0;
+    unsigned int valid_point_count = 0;
     for (int j = -vertical_points_; j <= vertical_points_; j++) {
       int v_ring_index = ring_index + j;
       if (!validate_ring(v_ring_index)) {
         continue;
       }
-      int v_index = yaw_index + get_firing_order_from_ring_index(v_ring_index);
+      const unsigned int v_index = yaw_index + get_firing_order_from_ring_index(v_ring_index);
 
       for (int k = -horizontal_points_; k <= horizontal_points_; k++) {
-        int h_index = v_index + k * layer_num_;
+        const int h_index = v_index + k * layer_num_;
         if (0 > h_index) {
           continue;
         } else if (h_index >= size) {
           continue;
         }
-        Eigen::Vector3d p_h(cloud->points[h_index].x, cloud->points[h_index].y,
+        const Eigen::Vector3d p_h(cloud->points[h_index].x, cloud->points[h_index].y,
           cloud->points[h_index].z);
-        double distance_q_h = (p_h - p_q).norm();
+        const double distance_q_h = (p_h - p_q).norm();
         if (distance_q_h > query_radius_) {
           continue;
         }
@@ -201,14 +202,14 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
       continue;
     }
     // PCA
-    Eigen::Vector3d ave = sum / static_cast<double>(valid_point_count);
+    const Eigen::Vector3d ave = sum / static_cast<double>(valid_point_count);
     double sigma_xx = 0;
     double sigma_xy = 0;
     double sigma_xz = 0;
     double sigma_yy = 0;
     double sigma_yz = 0;
     double sigma_zz = 0;
-    for (int i = 0; i < valid_point_count; i++) {
+    for (unsigned int i = 0; i < valid_point_count; i++) {
       sigma_xx += (x_data[i] - ave(0)) * (x_data[i] - ave(0));
       sigma_xy += (x_data[i] - ave(0)) * (y_data[i] - ave(1));
       sigma_xz += (x_data[i] - ave(0)) * (z_data[i] - ave(2));
@@ -221,9 +222,9 @@ void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
       sigma_xy, sigma_yy, sigma_yz,
       sigma_xz, sigma_yz, sigma_zz;
     vcov /= static_cast<double>(valid_point_count);
-    Eigen::EigenSolver<Eigen::Matrix3d> es(vcov);
-    Eigen::Vector3d eigen_values = es.eigenvalues().real();
-    Eigen::Matrix3d eigen_vectors = es.eigenvectors().real();
+    const Eigen::EigenSolver<Eigen::Matrix3d> es(vcov);
+    const Eigen::Vector3d eigen_values = es.eigenvalues().real();
+    const Eigen::Matrix3d eigen_vectors = es.eigenvectors().real();
 
     int third_component_index = 0;        // index of smallest eigen value
     third_component_index = eigen_values(third_component_index) >
@@ -293,7 +294,7 @@ void NormalEstimatorComponent::get_d_gaussian_sphere(
 {
   pcl::copyPointCloud(*cloud, *d_gaussian_sphere);
   for (auto & p : d_gaussian_sphere->points) {
-    double inner_product = p.x * p.normal_x + p.y * p.normal_y + p.z * p.normal_z;
+    const double inner_product = p.x * p.normal_x + p.y * p.normal_y + p.z * p.normal_z;
     p.x = p.normal_x * inner_product;
     p.y = p.normal_y * inner_product;
     p.z = p.normal_z * inner_product;
@@ -311,9 +312,9 @@ void NormalEstimatorComponent::publish_normal_marker(const CloudXYZINPtr & cloud
   marker.scale.x = 0.01;
   marker.color.a = 0.3;
   marker.color.g = 1.0;
-  int size = cloud->points.size();
+  const unsigned int size = cloud->points.size();
   marker.points.clear();
-  for (int i = 0; i < size; i++) {
+  for (unsigned int i = 0; i < size; i++) {
     geometry_msgs::msg::Point p1, p2;
     p1.x = cloud->points[i].x;
     p1.y = cloud->points[i].y;
@@ -330,24 +331,24 @@ void NormalEstimatorComponent::publish_normal_marker(const CloudXYZINPtr & cloud
 
 void NormalEstimatorComponent::remove_invalid_points(CloudXYZINPtr & cloud)
 {
-  int size = cloud->points.size();
+  const unsigned int size = cloud->points.size();
   CloudXYZIN filtered_cloud;
   filtered_cloud.header = cloud->header;
   filtered_cloud.points.clear();
   filtered_cloud.points.reserve(cloud->points.size());
-  for (int i = 0; i < size; i++) {
-    double n_x = cloud->points[i].normal_x;
-    double n_y = cloud->points[i].normal_y;
-    double n_z = cloud->points[i].normal_z;
+  for (unsigned int i = 0; i < size; i++) {
+    const double n_x = cloud->points[i].normal_x;
+    const double n_y = cloud->points[i].normal_y;
+    const double n_z = cloud->points[i].normal_z;
     // if normal is not estimated
     if (n_x * n_x + n_y * n_y + n_z * n_z == 0.0) {
       continue;
     }
 
-    double p_x = cloud->points[i].x;
-    double p_y = cloud->points[i].y;
-    double p_z = cloud->points[i].z;
-    double distance = sqrt(p_x * p_x + p_y * p_y + p_z * p_z);
+    const double p_x = cloud->points[i].x;
+    const double p_y = cloud->points[i].y;
+    const double p_z = cloud->points[i].z;
+    const double distance = sqrt(p_x * p_x + p_y * p_y + p_z * p_z);
     if ((min_range_ < distance) && (distance < max_range_)) {
       filtered_cloud.points.push_back(cloud->points[i]);
     }
@@ -360,12 +361,12 @@ void NormalEstimatorComponent::remove_invalid_points(CloudXYZINPtr & cloud)
 
 void NormalEstimatorComponent::filter_curvature(CloudXYZINPtr & cloud)
 {
-  int size = cloud->points.size();
+  const unsigned int size = cloud->points.size();
   CloudXYZIN filtered_cloud;
   filtered_cloud.header = cloud->header;
   filtered_cloud.points.clear();
   filtered_cloud.points.reserve(cloud->points.size());
-  for (int i = 0; i < size; i++) {
+  for (unsigned int i = 0; i < size; i++) {
     if (cloud->points[i].curvature < max_curvature_threshold_) {
       filtered_cloud.points.push_back(cloud->points[i]);
     }
