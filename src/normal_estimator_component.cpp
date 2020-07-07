@@ -71,7 +71,7 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
   cloud_sub_ = create_subscription<sensor_msgs::msg::PointCloud2>(
     "velodyne_points", 1,
     std::bind(&NormalEstimatorComponent::cloud_callback, this, std::placeholders::_1));
-  normal_cloud_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points", 1);
+  normal_cloud_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>("velodyne_points/normal", 1);
   gaussian_sphere_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
     "perfect_velodyne/normal_sphere", 1);
   gaussian_sphere_filtered_pub_ = create_publisher<sensor_msgs::msg::PointCloud2>(
