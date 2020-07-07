@@ -83,32 +83,32 @@ NormalEstimatorComponent::NormalEstimatorComponent(const rclcpp::NodeOptions & o
   normal_marker_pub_ = create_publisher<visualization_msgs::msg::Marker>(
     "perfect_velodyne/normal_vector", 1);
 
-  RCLCPP_INFO_STREAM(this->get_logger(), "max_range: " << max_range_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "min_range: " << min_range_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "skip: " << skip_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "vertical_points: " << vertical_points_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "horizontal_points: " << horizontal_points_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "layer_num: " << layer_num_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "query_radius: " << query_radius_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "density: " << density_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "gaussian_sphere_radius: " << gaussian_sphere_radius_);
-  RCLCPP_INFO_STREAM(this->get_logger(), "max_curvature_threshold: " << max_curvature_threshold_);
+  RCLCPP_INFO_STREAM(get_logger(), "max_range: " << max_range_);
+  RCLCPP_INFO_STREAM(get_logger(), "min_range: " << min_range_);
+  RCLCPP_INFO_STREAM(get_logger(), "skip: " << skip_);
+  RCLCPP_INFO_STREAM(get_logger(), "vertical_points: " << vertical_points_);
+  RCLCPP_INFO_STREAM(get_logger(), "horizontal_points: " << horizontal_points_);
+  RCLCPP_INFO_STREAM(get_logger(), "layer_num: " << layer_num_);
+  RCLCPP_INFO_STREAM(get_logger(), "query_radius: " << query_radius_);
+  RCLCPP_INFO_STREAM(get_logger(), "density: " << density_);
+  RCLCPP_INFO_STREAM(get_logger(), "gaussian_sphere_radius: " << gaussian_sphere_radius_);
+  RCLCPP_INFO_STREAM(get_logger(), "max_curvature_threshold: " << max_curvature_threshold_);
 }
 
 void NormalEstimatorComponent::cloud_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
-  RCLCPP_INFO(this->get_logger(), "=== normal estimator === ");
+  RCLCPP_INFO(get_logger(), "=== normal estimator === ");
   auto start_time = std::chrono::system_clock::now();
 
   CloudXYZINPtr cloud_ptr(new CloudXYZIN);
   pcl::fromROSMsg(*msg, *cloud_ptr);
-  RCLCPP_INFO_STREAM(this->get_logger(), "subscribed cloud size: " << cloud_ptr->points.size());
+  RCLCPP_INFO_STREAM(get_logger(), "subscribed cloud size: " << cloud_ptr->points.size());
 
   estimate_normal(cloud_ptr);
 
   remove_invalid_points(cloud_ptr);
 
-  RCLCPP_INFO_STREAM(this->get_logger(), "output cloud size: " << cloud_ptr->points.size());
+  RCLCPP_INFO_STREAM(get_logger(), "output cloud size: " << cloud_ptr->points.size());
   sensor_msgs::msg::PointCloud2 normal_cloud_msg;
   pcl::toROSMsg(*cloud_ptr, normal_cloud_msg);
   pcl_conversions::fromPCL(cloud_ptr->header, normal_cloud_msg.header);
@@ -144,12 +144,12 @@ void NormalEstimatorComponent::cloud_callback(const sensor_msgs::msg::PointCloud
 
   auto end_time = std::chrono::system_clock::now();
   const double duration = std::chrono::duration<double, std::milli>(end_time - start_time).count();
-  RCLCPP_INFO_STREAM(this->get_logger(), "process time: " << duration << "[s]");
+  RCLCPP_INFO_STREAM(get_logger(), "process time: " << duration << "[s]");
 }
 
 void NormalEstimatorComponent::estimate_normal(CloudXYZINPtr & cloud)
 {
-  RCLCPP_DEBUG(this->get_logger(), "estimate normal");
+  RCLCPP_DEBUG(get_logger(), "estimate normal");
   const int size = cloud->points.size();
   const int query_size = (2 * horizontal_points_ + 1) * (2 * vertical_points_ + 1);
 
