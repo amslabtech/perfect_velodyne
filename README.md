@@ -11,6 +11,7 @@ Normal Estimation For Velodyne
 ```
 cd your_ros2_ws/src
 git clone https://github.com/amslabtech/perfect_velodyne.git
+vcs install < perfect_velodyne/.rosinstall 
 cd your_ros2_ws
 rosdep install -i -r -y --from-paths src
 colcon build 
