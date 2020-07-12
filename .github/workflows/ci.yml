@@ -17,7 +17,7 @@ jobs:
           curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
           sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
           sudo apt update
-          sudo apt install --no-install-recommends ros-foxy-desktop -y
+          sudo apt install --no-install-recommends ros-foxy-ros-base -y
           source /opt/ros/foxy/setup.bash
           sudo apt install --no-install-recommends python3-colcon-common-extensions python3-rosdep -y
           sudo rosdep init
@@ -25,10 +25,11 @@ jobs:
       - name: Build and Test
         run: |
           source /opt/ros/foxy/setup.bash
-          mkdir -p ~/ros2_ws/src/perfect_velodyne
-          cp -r . ~/ros2_ws/src/perfect_velodyne 
+          dir=$(basename `pwd`)
+          mkdir -p ~/ros2_ws/src/$dir
+          cp -r . ~/ros2_ws/src/$dir
           cd ~/ros2_ws
-          rosdep install -i -r -y --from-paths src 
+          rosdep install -i -r -y --from-paths src
           colcon build
           source ~/ros2_ws/install/setup.bash
           colcon test && colcon test-result
