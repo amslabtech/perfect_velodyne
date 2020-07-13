@@ -19,17 +19,18 @@ jobs:
           sudo apt update
           sudo apt install --no-install-recommends ros-foxy-ros-base -y
           source /opt/ros/foxy/setup.bash
-          sudo apt install --no-install-recommends python3-colcon-common-extensions python3-rosdep -y
+          sudo apt install --no-install-recommends python3-colcon-common-extensions python3-rosdep python3-vcstool -y
           sudo rosdep init
           rosdep update
       - name: Build and Test
         run: |
           source /opt/ros/foxy/setup.bash
-          dir=$(basename `pwd`)
-          mkdir -p ~/ros2_ws/src/$dir
-          cp -r . ~/ros2_ws/src/$dir
+          package_name=$(basename `pwd`)
+          mkdir -p ~/ros2_ws/src/$package_name
+          cp -r . ~/ros2_ws/src/$package_name
           cd ~/ros2_ws
+          vcs import src < src/$package_name/.rosinstall
           rosdep install -i -r -y --from-paths src
           colcon build
           source ~/ros2_ws/install/setup.bash
-          colcon test && colcon test-result
+          colcon test --packages-select $package_name && colcon test-result
