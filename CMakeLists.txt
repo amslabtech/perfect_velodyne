@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(perfect_velodyne)
 
 ## Find catkin macros and libraries
@@ -142,7 +142,7 @@ include_directories(
 #link_directories(${PCL_LIBRARY_DIRS})
 #add_definitions(${PCL_DEFINITIONS})
 
-SET(CMAKE_CXX_FLAGS "-std=c++11 -O2 -g -Wall ${CMAKE_CXX_FLAGS}")
+SET(CMAKE_CXX_FLAGS "-std=c++14 -O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 ## Declare a C++ library
 # add_library(perfect_velodyne
 #   src/${PROJECT_NAME}/perfect_velodyne.cpp
