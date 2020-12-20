@@ -81,6 +81,8 @@ private:
     ros::Publisher d_gaussian_sphere_pub;
     ros::Publisher d_gaussian_sphere_filtered_pub;
     ros::Publisher normal_marker_pub;
+    std::map<int, int> ring_index_from_order;
+    std::map<int, int> order_from_ring_index;
 };
 
 NormalEstimator::NormalEstimator(void)
@@ -115,6 +117,11 @@ NormalEstimator::NormalEstimator(void)
     std::cout << "DENSITY: " << DENSITY << std::endl;
     std::cout << "GAUSSIAN_SPHERE_RADIUS: " << GAUSSIAN_SPHERE_RADIUS << std::endl;
     std::cout << "MAX_CURVATURE_THRESHOLD: " << MAX_CURVATURE_THRESHOLD<< std::endl;
+
+    for(int i=0;i<LAYER_NUM;++i){
+        order_from_ring_index[i] = get_firing_order_from_ring_index(i);
+        ring_index_from_order[i] = get_ring_index_from_firing_order(i);
+    }
 }
 
 void NormalEstimator::cloud_callback(const sensor_msgs::PointCloud2ConstPtr& msg)
@@ -173,7 +180,7 @@ void NormalEstimator::estimate_normal(CloudXYZINPtr& cloud)
             continue;
         }
         int order = i % LAYER_NUM;
-        int ring_index = get_ring_index_from_firing_order(order);
+        int ring_index = ring_index_from_order[order];
         int yaw_index = i - order;
 
         std::vector<double> x_data(QUERY_SIZE, 0);
@@ -187,7 +194,7 @@ void NormalEstimator::estimate_normal(CloudXYZINPtr& cloud)
             if(!validate_ring(v_ring_index)){
                 continue;
             }
-            int v_index = yaw_index + get_firing_order_from_ring_index(v_ring_index);
+            int v_index = yaw_index + order_from_ring_index[v_ring_index];
 
             for(int k=-HORIZONTAL_POINTS;k<=HORIZONTAL_POINTS;k++){
                 int h_index = v_index + k * LAYER_NUM;
