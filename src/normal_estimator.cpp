@@ -27,10 +27,31 @@ public:
 
     void cloud_callback(const sensor_msgs::PointCloud2ConstPtr&);
     void estimate_normal(CloudXYZINPtr&);
-    bool validate_range(double);
-    int get_ring_index_from_firing_order(int);
-    int get_firing_order_from_ring_index(int);
-    bool validate_ring(int);
+    bool validate_range(double range)
+    {
+        return (MIN_RANGE <= range) && (range <= MAX_RANGE);
+    }
+    int get_ring_index_from_firing_order(int order)
+    {
+        if(order % 2){
+            return order / 2 + LAYER_NUM / 2;
+        }else{
+            return order / 2;
+        }
+    }
+    int get_firing_order_from_ring_index(int index)
+    {
+        const int LAYER_NUM_2 = LAYER_NUM / 2;
+        if(index < LAYER_NUM_2){
+            return 2 * index;
+        }else{
+            return 2 * (index - LAYER_NUM_2) + 1;
+        }
+    }
+    bool validate_ring(int index)
+    {
+        return (0 <= index) && (index < LAYER_NUM);
+    }
     void get_gaussian_sphere(const CloudXYZINPtr&, CloudXYZINPtr&);
     void get_d_gaussian_sphere(const CloudXYZINPtr&, CloudXYZINPtr&);
     void publish_normal_marker(const CloudXYZINPtr&);
@@ -233,34 +254,34 @@ void NormalEstimator::estimate_normal(CloudXYZINPtr& cloud)
     }
 }
 
-bool NormalEstimator::validate_range(double range)
-{
-    return (MIN_RANGE <= range) && (range <= MAX_RANGE);
-}
+// bool NormalEstimator::validate_range(double range)
+// {
+//     return (MIN_RANGE <= range) && (range <= MAX_RANGE);
+// }
 
-int NormalEstimator::get_ring_index_from_firing_order(int order)
-{
-    if(order % 2){
-        return order / 2 + LAYER_NUM / 2;
-    }else{
-        return order / 2;
-    }
-}
+// int NormalEstimator::get_ring_index_from_firing_order(int order)
+// {
+//     if(order % 2){
+//         return order / 2 + LAYER_NUM / 2;
+//     }else{
+//         return order / 2;
+//     }
+// }
 
-int NormalEstimator::get_firing_order_from_ring_index(int index)
-{
-    const int LAYER_NUM_2 = LAYER_NUM / 2;
-    if(index < LAYER_NUM_2){
-        return 2 * index;
-    }else{
-        return 2 * (index - LAYER_NUM_2) + 1;
-    }
-}
+// int NormalEstimator::get_firing_order_from_ring_index(int index)
+// {
+//     const int LAYER_NUM_2 = LAYER_NUM / 2;
+//     if(index < LAYER_NUM_2){
+//         return 2 * index;
+//     }else{
+//         return 2 * (index - LAYER_NUM_2) + 1;
+//     }
+// }
 
-bool NormalEstimator::validate_ring(int index)
-{
-    return (0 <= index) && (index < LAYER_NUM);
-}
+// bool NormalEstimator::validate_ring(int index)
+// {
+//     return (0 <= index) && (index < LAYER_NUM);
+// }
 
 void NormalEstimator::get_gaussian_sphere(const CloudXYZINPtr& cloud, CloudXYZINPtr& gaussian_sphere)
 {
